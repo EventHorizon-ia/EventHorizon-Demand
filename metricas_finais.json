@@ -1,0 +1,24 @@
+{
+  "data": "2026-07-19",
+  "wape_modelo": 30.93,
+  "wape_baseline": 44.17,
+  "melhoria_pct": 30.0,
+  "ic_modelo": [
+    27.72,
+    34.2
+  ],
+  "ic_baseline": [
+    40.3,
+    48.98
+  ],
+  "lojas": [
+    "CA_1",
+    "CA_2",
+    "CA_3",
+    "TX_1",
+    "TX_2",
+    "WI_1",
+    "WI_2"
+  ],
+  "observacao": "Modelo unificado com store_id, lag_365, ewma_7, ewma_28, rolling_std_7. Bootstrap por data com blocos de 7 dias."
+}
