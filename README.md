@@ -168,12 +168,11 @@ The evaluation protocol was designed to prevent optimistic estimates commonly fo
 
 # Links
 
-| Project | Link |
-|---------|------|
-| 🚀 EventHorizon-AI Hub | *(add repository link)* |
-| 📈 Crypto Research | *(add repository link)* |
-| 📦 EventHorizon Demand | *(this repository)* |
-| 🧪 honest-validation-toolkit | *(add repository link)* |
+| Project | 
+|---------|
+| 🚀 [EventHorizon-AI hub](https://github.com/EventHorizon-ia/eventhorizon) |
+| 📈 [Crypto Research](https://github.com/EventHorizon-ia/crypto-h0-edge) |
+| 🧪 [honest-validation-toolkit](https://github.com/EventHorizon-ia/demand-m5) |
 
 ---
 
