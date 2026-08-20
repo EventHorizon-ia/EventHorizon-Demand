@@ -17,7 +17,7 @@ That often results in:
 **EventHorizon Demand** replaces guesswork with a **statistically validated forecasting system** built for real-world retail operations.
 
 The project:
-
+    
 - 📈 Achieves a **30% improvement** over the standard seasonal baseline (**WAPE 30.9% vs. 44.4%**).
 - 🏬 Produces statistically significant improvements across **7 out of 7 stores** (one store exhibits a smaller margin, transparently documented).
 - 🔬 Uses the same **honest validation methodology** developed for the EventHorizon crypto research.
