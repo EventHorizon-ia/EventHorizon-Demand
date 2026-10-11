@@ -1,73 +1,93 @@
 # EventHorizon Demand
 
-> **Retail demand forecasting validated with academic-grade rigor.**  
+> **Retail demand forecasting with honest validation.**  
 > Part of the **EventHorizon** platform. Built to reduce waste and stock-outs.
 
 ---
 
-# Why This Exists
+## Why This Exists
 
-Small and medium retailers often estimate next week's demand based on intuition or simple heuristics.
+Small and medium retailers often estimate next week’s demand based on
+intuition or simple heuristics.
 
 That often results in:
 
 - 📦 **Excess inventory**, increasing storage costs and product waste.
 - ❌ **Stock-outs**, causing lost sales and dissatisfied customers.
 
-**EventHorizon Demand** replaces guesswork with a **statistically validated forecasting system** built for real-world retail operations.
+**EventHorizon Demand** replaces guesswork with a statistically validated
+forecasting system built for real-world retail operations.
 
-The project:
-    
-- 📈 Achieves a **30% improvement** over the standard seasonal baseline (**WAPE 30.9% vs. 44.4%**).
-- 🏬 Produces statistically significant improvements across **7 out of 7 stores** (one store exhibits a smaller margin, transparently documented).
-- 🔬 Uses the same **honest validation methodology** developed for the EventHorizon crypto research.
+The current MVP:
 
-> The objective is not simply to build an accurate model—it is to provide results that remain trustworthy under rigorous statistical evaluation.
+- 📈 Achieves **31.03% overall WAPE** on the M5 retail benchmark.
+- 🏬 Outperforms the naive lag-7 baseline in **7 out of 7 stores**.
+- 🧱 Does **not** require `lag_365`, making it more suitable for use cases
+  with shorter sales history.
+- 🔬 Uses temporal validation, block bootstrap and paired gap-bootstrap
+  intervals.
+
+> The objective is not simply to build an accurate model. It is to provide
+> results that remain trustworthy under rigorous statistical evaluation.
 
 ---
 
-# Features
+## Current MVP Result
+
+| Metric | EventHorizon Demand MVP |
+|---|---:|
+| Overall WAPE | **31.03%** |
+| Validation setup | Temporal holdout: train ≤ 2014, validate ≥ 2015 |
+| Feature set | No `lag_365` |
+| Store-level result | Better than the naive lag-7 baseline in 7/7 stores |
+| Market validation | Ongoing |
+
+### Store-level WAPE
+
+| Store | EventHorizon Demand MVP | Naive lag-7 baseline | Paired WAPE gap |
+|---|---:|---:|---:|
+| CA_1 | 31.49% | 46.95% | 10.10–22.00 pp |
+| CA_2 | 35.04% | 44.93% | 5.69–14.85 pp |
+| CA_3 | 28.72% | 40.38% | 6.54–17.44 pp |
+| TX_1 | 28.50% | 42.03% | 9.06–19.33 pp |
+| TX_2 | 28.10% | 43.91% | 10.84–21.72 pp |
+| WI_1 | 40.97% | 50.59% | 4.71–15.17 pp |
+| WI_2 | 37.19% | 52.12% | 10.48–20.05 pp |
+
+The intervals are 95% percentile intervals from a moving block bootstrap with
+seven-day blocks and 1,000 resamples. The gap is calculated as the paired
+difference between the naive lag-7 baseline and EventHorizon Demand.
+
+> These results establish technical model performance, not business ROI.
+
+A previous legacy model achieved 30.93% WAPE, but it used `lag_365` and was
+trained before a weekend-feature bug fix. It is retained only as historical
+context and must not be interpreted as the current MVP’s performance.
+
+---
+
+## Features
 
 | Feature | Description |
-|---------|-------------|
-| 📊 Accurate Forecasting | Reduces WAPE by **30%** compared to the common lag-7 seasonal baseline. |
-| 🏬 Multi-Store Support | One model serves multiple stores using a `store_code` feature to capture store-specific behavior. |
-| 📈 Rich Temporal Features | Includes yearly seasonality (`lag_365`), weekly seasonality, rolling statistics and exponential weighted averages. |
-| 🔬 Honest Statistical Validation | Walk-forward evaluation, block bootstrap by date, paired gap bootstrap and confidence intervals. |
-| ⚡ Lightweight Deployment | The trained **LightGBM** model is approximately **600 KB**, requiring only CPU inference. |
-| 🔌 Easy Integration | Load with `joblib`, provide a DataFrame or CSV, and obtain predictions immediately. |
+|---|---|
+| 📊 Demand forecasting | Predicts future retail demand from historical sales and contextual features. |
+| 🏬 Multi-store support | Uses `store_code` to learn store-specific behavior. |
+| 📈 Temporal features | Uses short-term lags, weekly and yearly seasonality, rolling statistics and exponential weighted averages. |
+| 🚫 No `lag_365` requirement | The MVP does not require a full year of historical sales. |
+| 🔬 Honest validation | Uses temporal holdout validation, block bootstrap and paired gap bootstrap. |
+| ⚡ Lightweight deployment | The trained LightGBM model is compact and supports CPU inference. |
+| 🔌 Easy integration | Load with `joblib`, provide a DataFrame with the required features and obtain predictions. |
 
 ---
 
-# Performance
-
-| Metric | Seasonal Baseline (lag-7) | EventHorizon Demand | Improvement |
-|--------|---------------------------:|--------------------:|------------:|
-| **WAPE** | **44.4%** | **30.9%** | **30%** |
-| **MAE** | 29.54 units | 18.77 units | 36% |
-
-> **Evaluation Dataset:** M5 Walmart Forecasting Dataset (2015–2016 evaluation period)
-
-Validation included:
-
-- ✅ Walk-forward evaluation
-- ✅ Block bootstrap by date
-- ✅ Paired gap bootstrap
-- ✅ Confidence intervals
-- ✅ Per-store statistical analysis
-
----
-
-# Quick Start
+## Quick Start
 
 ```python
 import joblib
 import pandas as pd
 
-# Load the trained model
-model = joblib.load("modelo_demanda_m5.pkl")
+model = joblib.load("model/modelo_demanda_mvp.pkl")
 
-# Required features
 features = [
     "store_code",
     "dia_seno",
@@ -77,7 +97,6 @@ features = [
     "lag_7",
     "lag_14",
     "lag_28",
-    "lag_365",
     "ewma_7",
     "ewma_28",
     "rolling_std_7",
@@ -88,94 +107,124 @@ features = [
     "snap"
 ]
 
-# Load new sales data
 df = pd.read_csv("your_store_sales.csv")
 
-# Generate predictions
 df["predicted_sales"] = model.predict(df[features])
 ```
 
----
-
-# Repository Structure
-
-```text
-eventhorizon-demand/
-│
-├── model/
-│   ├── modelo_demanda_m5.pkl      # Trained LightGBM model (~600 KB)
-│   └── metricas_finais.json       # Metrics, confidence intervals and per-store analysis
-│
-├── notebooks/
-│   └── m5_research.ipynb          # Complete research pipeline
-│
-├── src/
-│   ├── features.py                # Feature engineering
-│   └── validation.py              # Walk-forward, bootstrap and evaluation
-│
-└── README.md
-```
+> The input DataFrame must contain the required features in the same order
+> and with the same preprocessing used during training.
 
 ---
 
-# Validation Methodology
 
-The evaluation protocol was designed to prevent optimistic estimates commonly found in time-series forecasting.
 
-| Method | Purpose |
-|---------|----------|
-| **Walk-Forward Split** | Simulates real production forecasting by respecting temporal order. |
-| **Block Bootstrap** | Estimates confidence intervals while preserving temporal dependence. |
-| **Paired Gap Bootstrap** | Measures whether improvements over the baseline are statistically significant. |
-| **Confidence Intervals** | Every reported metric includes uncertainty estimation. |
-| **Per-Store Analysis** | Performance evaluated individually for every retail location. |
+## Validation Methodology
+
+The MVP was evaluated with two complementary temporal protocols.
+
+### Temporal holdout
+
+The main reported result trains on data through 2014 and evaluates on data
+from 2015 onward:
+
+| Metric | EventHorizon Demand MVP |
+|---|---:|
+| Overall WAPE | **31.03%** |
+| Training period | Through 2014 |
+| Evaluation period | 2015 onward |
+| Feature set | No `lag_365` |
+| Baseline | Naive lag-7 |
+
+### Walk-forward stability
+
+To assess temporal stability, the model was retrained annually and evaluated
+on the following year:
+
+| Test year | Protocol |
+|---|---|
+| 2013 | Train on earlier years; evaluate on 2013 |
+| 2014 | Train through 2013; evaluate on 2014 |
+| 2015 | Train through 2014; evaluate on 2015 |
+| 2016 | Train through 2015; evaluate on 2016 |
+
+This expanding-window walk-forward protocol retrains the model for each test
+year, using only information available before that year.
+
+### Uncertainty and significance
+
+Uncertainty was estimated with a moving block bootstrap using seven-day blocks
+and 1,000 resamples.
+
+For each store, the paired WAPE gap between the naive lag-7 baseline and
+EventHorizon Demand was computed within each bootstrap resample. This paired
+approach evaluates whether the baseline improvement remains consistent under
+temporal resampling.
+
+### Honest limitations
+
+- The main 31.03% WAPE result comes from a temporal holdout evaluation.
+- The annual walk-forward analysis assesses temporal stability, but its
+  yearly results should not be pooled as a single out-of-sample benchmark.
+- Results are specific to the M5 Walmart benchmark.
+- Technical accuracy does not establish business ROI.
+
+### Honest limitations
+
+- This is a temporal-holdout result, not a walk-forward validation across
+  multiple time origins.
+- The validation period was used for model evaluation and reporting.
+- Results are specific to the M5 Walmart benchmark and do not guarantee
+  performance on another retailer, market or data distribution.
+- Technical accuracy does not establish business ROI.
 
 ---
 
-# Philosophy
+## Philosophy
 
 | Principle | Description |
-|-----------|-------------|
-| 🎯 **Rigor over Hype** | Every reported improvement is accompanied by confidence intervals and transparent limitations. |
-| 🔬 **Honest Validation** | No random shuffling, no data leakage, no cherry-picked results. |
-| 🛠️ **Practical Deployment** | A compact LightGBM model that can run on virtually any machine. |
-| 📊 **Transparent Metrics** | Evaluation scripts and methodology remain fully reproducible. |
+|---|---|
+| 🎯 **Rigor over hype** | Results are accompanied by validation methodology and limitations. |
+| 🔬 **Honest validation** | No random shuffling, no data leakage and no cherry-picked results. |
+| 🛠️ **Practical deployment** | A compact LightGBM model that can run on CPU. |
+| 📊 **Transparent metrics** | Evaluation methodology and results are documented openly. |
 
 ---
 
-# Use Cases
+## Use Cases
 
 - 🛒 Supermarkets forecasting daily product demand
 - 👕 Fashion retailers planning seasonal inventory
 - 📦 E-commerce inventory replenishment
 - 🚚 Distribution centers estimating weekly shipments
 - 🏪 Multi-store retail forecasting
-- 📈 Supply chain demand planning
+- 📈 Supply-chain demand planning
 
 ---
 
-# Tech Stack
+## Tech Stack
 
 | Component | Technology |
-|-----------|------------|
+|---|---|
 | Model | LightGBM |
 | Language | Python |
-| Data Processing | pandas, NumPy |
-| Validation | honest-validation-toolkit |
-| Model Serialization | joblib |
+| Data processing | pandas, NumPy |
+| Validation | Block bootstrap and paired gap bootstrap |
+| Model serialization | joblib |
 
 ---
 
-# Links
+## Links
 
-| Project | 
-|---------|
-| 🚀 [EventHorizon-AI hub](https://github.com/EventHorizon-ia/eventhorizon) |
-| 📈 [Crypto Research](https://github.com/EventHorizon-ia/crypto-h0-edge) |
-| 🧪 [honest-validation-toolkit](https://github.com/EventHorizon-ia/demand-m5) |
+| Project | URL |
+|---|---|
+| 🚀 EventHorizon-AI Hub | [github.com/EventHorizon-ia/EventHorizon](https://github.com/EventHorizon-ia/EventHorizon) |
+| 📦 Demand Research | [github.com/EventHorizon-ia/demand-m5](https://github.com/EventHorizon-ia/demand-m5) |
+| 🧪 Honest Validation Toolkit | [github.com/EventHorizon-ia/honest-validation-toolkit](https://github.com/EventHorizon-ia/honest-validation-toolkit) |
+| 📈 Crypto Research | [github.com/EventHorizon-ia/crypto-h0-edge](https://github.com/EventHorizon-ia/crypto-h0-edge) |
 
 ---
 
-# License
+## License
 
 MIT License.
