@@ -12,19 +12,19 @@ intuition or simple heuristics.
 
 That often results in:
 
-- 📦 **Excess inventory**, increasing storage costs and product waste.
-- ❌ **Stock-outs**, causing lost sales and dissatisfied customers.
+-  **Excess inventory**, increasing storage costs and product waste.
+-  **Stock-outs**, causing lost sales and dissatisfied customers.
 
 **EventHorizon Demand** replaces guesswork with a statistically validated
 forecasting system built for real-world retail operations.
 
 The current MVP:
 
-- 📈 Achieves **31.03% overall WAPE** on the M5 retail benchmark.
-- 🏬 Outperforms the naive lag-7 baseline in **7 out of 7 stores**.
-- 🧱 Does **not** require `lag_365`, making it more suitable for use cases
+-  Achieves **31.03% overall WAPE** on the M5 retail benchmark.
+-  Outperforms the naive lag-7 baseline in **7 out of 7 stores**.
+-  Does **not** require `lag_365`, making it more suitable for use cases
   with shorter sales history.
-- 🔬 Uses temporal validation, block bootstrap and paired gap-bootstrap
+-  Uses temporal validation, block bootstrap and paired gap-bootstrap
   intervals.
 
 > The objective is not simply to build an accurate model. It is to provide
@@ -70,13 +70,13 @@ context and must not be interpreted as the current MVP’s performance.
 
 | Feature | Description |
 |---|---|
-| 📊 Demand forecasting | Predicts future retail demand from historical sales and contextual features. |
-| 🏬 Multi-store support | Uses `store_code` to learn store-specific behavior. |
-| 📈 Temporal features | Uses short-term lags, weekly and yearly seasonality, rolling statistics and exponential weighted averages. |
-| 🚫 No `lag_365` requirement | The MVP does not require a full year of historical sales. |
-| 🔬 Honest validation | Uses temporal holdout validation, block bootstrap and paired gap bootstrap. |
-| ⚡ Lightweight deployment | The trained LightGBM model is compact and supports CPU inference. |
-| 🔌 Easy integration | Load with `joblib`, provide a DataFrame with the required features and obtain predictions. |
+|  Demand forecasting | Predicts future retail demand from historical sales and contextual features. |
+|  Multi-store support | Uses `store_code` to learn store-specific behavior. |
+|  Temporal features | Uses short-term lags, weekly and yearly seasonality, rolling statistics and exponential weighted averages. |
+|  No `lag_365` requirement | The MVP does not require a full year of historical sales. |
+|  Honest validation | Uses temporal holdout validation, block bootstrap and paired gap bootstrap. |
+| Lightweight deployment | The trained LightGBM model is compact and supports CPU inference. |
+|  Easy integration | Load with `joblib`, provide a DataFrame with the required features and obtain predictions. |
 
 ---
 
@@ -184,21 +184,21 @@ temporal resampling.
 
 | Principle | Description |
 |---|---|
-| 🎯 **Rigor over hype** | Results are accompanied by validation methodology and limitations. |
-| 🔬 **Honest validation** | No random shuffling, no data leakage and no cherry-picked results. |
-| 🛠️ **Practical deployment** | A compact LightGBM model that can run on CPU. |
-| 📊 **Transparent metrics** | Evaluation methodology and results are documented openly. |
+|  **Rigor over hype** | Results are accompanied by validation methodology and limitations. |
+|  **Honest validation** | No random shuffling, no data leakage and no cherry-picked results. |
+|  **Practical deployment** | A compact LightGBM model that can run on CPU. |
+|  **Transparent metrics** | Evaluation methodology and results are documented openly. |
 
 ---
 
 ## Use Cases
 
-- 🛒 Supermarkets forecasting daily product demand
-- 👕 Fashion retailers planning seasonal inventory
-- 📦 E-commerce inventory replenishment
-- 🚚 Distribution centers estimating weekly shipments
-- 🏪 Multi-store retail forecasting
-- 📈 Supply-chain demand planning
+-  Supermarkets forecasting daily product demand
+-  Fashion retailers planning seasonal inventory
+-  E-commerce inventory replenishment
+-  Distribution centers estimating weekly shipments
+-  Multi-store retail forecasting
+-  Supply-chain demand planning
 
 ---
 
@@ -218,10 +218,10 @@ temporal resampling.
 
 | Project | URL |
 |---|---|
-| 🚀 EventHorizon-AI Hub | [github.com/EventHorizon-ia/EventHorizon](https://github.com/EventHorizon-ia/EventHorizon) |
-| 📦 Demand Research | [github.com/EventHorizon-ia/demand-m5](https://github.com/EventHorizon-ia/demand-m5) |
-| 🧪 Honest Validation Toolkit | [github.com/EventHorizon-ia/honest-validation-toolkit](https://github.com/EventHorizon-ia/honest-validation-toolkit) |
-| 📈 Crypto Research | [github.com/EventHorizon-ia/crypto-h0-edge](https://github.com/EventHorizon-ia/crypto-h0-edge) |
+|  EventHorizon-AI Hub | [github.com/EventHorizon-ia/EventHorizon](https://github.com/EventHorizon-ia/EventHorizon) |
+|  Demand Research | [github.com/EventHorizon-ia/demand-m5](https://github.com/EventHorizon-ia/demand-m5) |
+|  Honest Validation Toolkit | [github.com/EventHorizon-ia/honest-validation-toolkit](https://github.com/EventHorizon-ia/honest-validation-toolkit) |
+|  Crypto Research | [github.com/EventHorizon-ia/crypto-h0-edge](https://github.com/EventHorizon-ia/crypto-h0-edge) |
 
 ---
 
