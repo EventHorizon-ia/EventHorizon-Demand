@@ -1,3 +1,4 @@
+# Corrigi o bug da feature fim_de_semana 
 import argparse
 import os
 import re
@@ -9,9 +10,11 @@ import joblib
 import numpy as np
 import pandas as pd
 
-# ============================================================
-# CONFIGURAÇÃO DO MODELO
-# ============================================================
+
+
+
+# CONFIGURACAO DO MODELO
+
 FEATURES_MODELO = [
     "store_code",
     "dia_seno",
@@ -31,7 +34,6 @@ FEATURES_MODELO = [
     "snap",
 ]
 
-# Mesma codificação usada no treinamento
 STORE_CODE_MAP = {
     "CA_1": 0,
     "CA_2": 1,
@@ -42,11 +44,9 @@ STORE_CODE_MAP = {
     "WI_2": 6,
 }
 
-# ============================================================
-# UTILITÁRIOS
-# ============================================================
+
 def normalizar_nome_coluna(nome: str) -> str:
-    """Normaliza nome de coluna para facilitar a detecção."""
+    
     nome = unicodedata.normalize("NFKD", str(nome)).encode("ascii", "ignore").decode("utf-8")
     nome = nome.lower().strip()
     nome = re.sub(r"[^a-z0-9]+", "_", nome)
@@ -54,7 +54,6 @@ def normalizar_nome_coluna(nome: str) -> str:
 
 
 def encontrar_coluna(df: pd.DataFrame, candidatos: list) -> Optional[str]:
-    """Encontra uma coluna usando vários nomes possíveis."""
     mapa = {normalizar_nome_coluna(c): c for c in df.columns}
     for cand in candidatos:
         norm = normalizar_nome_coluna(cand)
@@ -64,7 +63,6 @@ def encontrar_coluna(df: pd.DataFrame, candidatos: list) -> Optional[str]:
 
 
 def ler_csv_robusto(caminho: str) -> pd.DataFrame:
-    """Lê CSV tentando diferentes codificações."""
     if not os.path.isfile(caminho):
         raise FileNotFoundError(f"Arquivo não encontrado: {caminho}")
 
@@ -94,27 +92,14 @@ def ler_csv_robusto(caminho: str) -> pd.DataFrame:
     return pd.read_csv(caminho)
 
 
-# ============================================================
-# PREPARAÇÃO DA SÉRIE DIÁRIA
-# ============================================================
+
 def para_serie_diaria(
     df: pd.DataFrame,
     col_data: str,
     col_vendas: str,
     col_preco: Optional[str] = None,
 ) -> pd.DataFrame:
-    """
-    Converte os dados para uma série diária.
-
-    Vendas:
-        - soma por dia
-        - dias sem venda = 0
-
-    Preço:
-        - média diária
-        - forward fill
-        - backward fill
-    """
+   
     df = df.copy()
 
     df["_data"] = pd.to_datetime(df[col_data], errors="coerce").dt.normalize()
@@ -154,9 +139,9 @@ def para_serie_diaria(
     return diario
 
 
-# ============================================================
+
 # FEATURES
-# ============================================================
+
 def criar_features_predicao(
     serie_vendas: pd.Series,
     data_futura: pd.Timestamp,
@@ -165,15 +150,7 @@ def criar_features_predicao(
     snap: int = 0,
     evento: int = 0,
 ) -> dict:
-    """
-    Cria exatamente as features necessárias pelo modelo.
-
-    Não utiliza lag_365.
-
-    A série_vendas contém:
-        - histórico real
-        - previsões anteriores durante previsão recursiva
-    """
+   
     if len(serie_vendas) < 28:
         raise ValueError(
             f"Série histórica insuficiente: {len(serie_vendas)} dias. "
@@ -181,54 +158,53 @@ def criar_features_predicao(
         )
 
     # --------------------------------------------------------
-    # Calendário
+    # Calendario
     # --------------------------------------------------------
-    # Python: Monday=0, Tuesday=1, Wednesday=2, Thursday=3, Friday=4, Saturday=5, Sunday=6
+    #monday=0, tuesday=1, wednesday=2, thursday=3, friday=4, saturday=5, sunday=6
     py_dow = data_futura.dayofweek
 
-    # Conversão para o padrão M5:
-    # 1=Saturday, 2=Sunday, 3=Monday, 4=Tuesday, 5=Wednesday, 6=Thursday, 7=Friday
+  
+    # 1=saturday, 2=sunday, 3=monday, 4=tuesday, 5=wednesday, 6=thursday, 7=friday
     m5_wday = ((py_dow + 2) % 7) + 1
 
-    # --------------------------------------------------------
-    # Features cíclicas
-    # --------------------------------------------------------
+    # Features ciclicas
+  
     dia_seno = np.sin(2 * np.pi * m5_wday / 7)
     dia_cos = np.cos(2 * np.pi * m5_wday / 7)
     mes_seno = np.sin(2 * np.pi * data_futura.month / 12)
     mes_cos = np.cos(2 * np.pi * data_futura.month / 12)
 
-    # --------------------------------------------------------
+   
     # LAGS
-    # --------------------------------------------------------
+    
     lag_7 = float(serie_vendas.iloc[-7])
     lag_14 = float(serie_vendas.iloc[-14])
     lag_28 = float(serie_vendas.iloc[-28])
 
-    # --------------------------------------------------------
+   
     # EWMA
     # Treinamento: vendas.shift(1).ewm(span=7, adjust=False).mean()
-    # --------------------------------------------------------
+    
     serie_anterior = serie_vendas.iloc[:-0] if False else serie_vendas
     ewma_7 = float(serie_anterior.ewm(span=7, adjust=False).mean().iloc[-1])
     ewma_28 = float(serie_anterior.ewm(span=28, adjust=False).mean().iloc[-1])
 
-    # --------------------------------------------------------
+    
     # VOLATILIDADE
     # Treinamento: vendas.shift(1).rolling(7).std()
-    # --------------------------------------------------------
+    
     rolling_std_7 = float(serie_vendas.iloc[-7:].std())
     if np.isnan(rolling_std_7):
         rolling_std_7 = 0.0
 
-    # --------------------------------------------------------
+   
     # FIM DE SEMANA
-    # --------------------------------------------------------
+   
     fim_de_semana = int(m5_wday in [1, 2])
 
-    # --------------------------------------------------------
-    # PREÇO
-    # --------------------------------------------------------
+    
+    # PRECO
+    
     if serie_preco is not None and len(serie_preco) > 0:
         serie_preco = serie_preco.dropna()
         if len(serie_preco) > 0:
@@ -246,9 +222,9 @@ def criar_features_predicao(
         sell_price = 0.0
         price_change = 0.0
 
-    # --------------------------------------------------------
+    
     # FEATURES FINAIS
-    # --------------------------------------------------------
+    
     features = {
         "store_code": int(store_code),
         "dia_seno": float(dia_seno),
@@ -271,9 +247,8 @@ def criar_features_predicao(
     return features
 
 
-# ============================================================
-# PREVISÃO RECURSIVA
-# ============================================================
+# PREVISAO RECURSIVA
+
 def prever_horizonte(
     modelo,
     serie_vendas: pd.Series,
@@ -285,11 +260,11 @@ def prever_horizonte(
     evento_d1: int,
 ) -> list:
     """
-    Faz previsão recursiva.
+    Faz previsao recursiva.
 
-    D+1: utiliza histórico real.
-    D+2 em diante: utiliza as previsões anteriores para construir os lags seguintes.
-    SNAP e evento: as flags recebidas pela CLI são aplicadas em D+1. Para os dias seguintes, permanecem 0.
+    D+1: utiliza historico real.
+    D+2 em diante: utiliza as previsoes anteriores para construir os lags seguintes.
+    snap e evento: as flags recebidas pela CLI são aplicadas em D+1. Para os dias seguintes, permanecem 0.
     """
     vendas = serie_vendas.copy()
     precos = serie_preco.copy() if serie_preco is not None else None
@@ -315,7 +290,7 @@ def prever_horizonte(
 
         X = pd.DataFrame([features], columns=FEATURES_MODELO).astype(float)
         pred = float(modelo.predict(X)[0])
-        pred = max(0.0, pred)  # Demanda não pode ser negativa
+        pred = max(0.0, pred)  # Demanda nao pode ser negativa
 
         previsoes.append((data_atual, pred))
         vendas.loc[data_atual] = pred
@@ -329,9 +304,9 @@ def prever_horizonte(
     return previsoes
 
 
-# ============================================================
+
 # MAIN
-# ============================================================
+
 def main():
     parser = argparse.ArgumentParser(
         description="Previsão de demanda recursiva com LightGBM M5."
@@ -361,16 +336,16 @@ def main():
 
     args = parser.parse_args()
 
-    # ========================================================
+    
     # VALIDAR HORIZONTE
-    # ========================================================
+    
     if args.horizonte < 1:
         print("Erro: horizonte deve ser >= 1.", file=sys.stderr)
         sys.exit(1)
 
-    # ========================================================
+    
     # CARREGAR MODELO
-    # ========================================================
+    
     try:
         modelo = joblib.load(args.modelo)
     except FileNotFoundError:
@@ -380,18 +355,18 @@ def main():
         print(f"Erro ao carregar modelo: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # ========================================================
+    
     # CARREGAR CSV
-    # ========================================================
+    
     try:
         df = ler_csv_robusto(args.csv)
     except Exception as e:
         print(f"Erro ao ler CSV: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # ========================================================
+    
     # DETECTAR COLUNAS
-    # ========================================================
+    
     col_data = args.data_col or encontrar_coluna(
         df, ["date", "data", "ds", "dia", "timestamp"]
     )
@@ -407,9 +382,7 @@ def main():
         print("Erro: não foi possível identificar a coluna de vendas. Use --vendas-col.", file=sys.stderr)
         sys.exit(1)
 
-    # ========================================================
     # NORMALIZAR DADOS
-    # ========================================================
     df[col_data] = pd.to_datetime(df[col_data], errors="coerce")
     df[col_vendas] = pd.to_numeric(df[col_vendas], errors="coerce")
     df = df.dropna(subset=[col_data, col_vendas])
@@ -418,9 +391,9 @@ def main():
         print("Erro: nenhuma linha válida após conversão.", file=sys.stderr)
         sys.exit(1)
 
-    # ========================================================
+    
     # COLUNAS OPCIONAIS
-    # ========================================================
+    
     col_preco = args.preco_col or encontrar_coluna(
         df, ["price", "sell_price", "preco", "preço", "valor", "unit_price"]
     )
@@ -429,9 +402,8 @@ def main():
         df, ["item_id", "product_id", "produto", "sku", "item", "product"]
     )
 
-    # ========================================================
+    #
     # AVISOS
-    # ========================================================
     if col_preco is None:
         print(
             "Aviso: coluna de preço não encontrada. Será usado sell_price=0 e price_change=0.",
@@ -444,9 +416,9 @@ def main():
             file=sys.stderr,
         )
 
-    # ========================================================
+    
     # AGRUPAMENTO
-    # ========================================================
+    
     group_cols = []
     if col_produto:
         group_cols.append(col_produto)
@@ -456,9 +428,7 @@ def main():
     resultados_agrupados = {}
     erros = []
 
-    # ========================================================
     # SEM GRUPAMENTO
-    # ========================================================
     if not group_cols:
         try:
             diario = para_serie_diaria(df, col_data, col_vendas, col_preco)
@@ -484,9 +454,7 @@ def main():
             print(f"Erro ao gerar previsão: {e}", file=sys.stderr)
             sys.exit(1)
 
-    # ========================================================
     # COM GRUPAMENTO
-    # ========================================================
     else:
         for col in group_cols:
             df[col] = df[col].fillna("desconhecido")
@@ -509,7 +477,7 @@ def main():
 
                     if store_code == -1:
                         print(
-                            f"⚠️ Aviso: loja '{store_id}' não mapeada. Usando store_code=0 (CA_1).",
+                            f" Aviso: loja '{store_id}' não mapeada. Usando store_code=0 (CA_1).",
                             file=sys.stderr,
                         )
                         store_code = 0
@@ -532,18 +500,15 @@ def main():
             except Exception as e:
                 erros.append((chave_str, str(e)))
 
-    # ========================================================
-    # VALIDAR RESULTADOS
-    # ========================================================
+   
     if not resultados_agrupados:
         print("Erro: nenhuma previsão pôde ser gerada.", file=sys.stderr)
         sys.exit(1)
 
-    # ========================================================
+    
     # RESULTADO
-    # ========================================================
     print()
-    print(f"📊 Previsão de demanda ({args.horizonte} dias)")
+    print(f" Previsão de demanda ({args.horizonte} dias)")
     print("=" * 60)
 
     total_horizonte = 0.0
@@ -571,22 +536,20 @@ def main():
         print("-" * 60)
         total_horizonte += soma_grupo
 
-    # ========================================================
-    # TOTAL GERAL
-    # ========================================================
+    
+    
+    
     if len(resultados_agrupados) > 1:
         print(
-            f"🚀 TOTAL ACUMULADO GERAL ({args.horizonte} dias): "
+            f" TOTAL ACUMULADO GERAL ({args.horizonte} dias): "
             f"{total_horizonte:.2f} unidades"
         )
         print("=" * 60)
 
-    # ========================================================
-    # ERROS PARCIAIS
-    # ========================================================
+  
     if erros:
         print()
-        print("⚠️ Alguns grupos falharam:")
+        print(" Alguns grupos falharam:")
         for chave, erro in erros:
             print(f"  {chave}: {erro}")
 
